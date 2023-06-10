@@ -1,11 +1,11 @@
-use std::fmt;
-use rand::seq::SliceRandom;
 use colored::*;
+use rand::seq::SliceRandom;
+use std::fmt;
 
 #[derive(Clone)]
 struct Tetromino {
     blocks: Vec<Vec<u8>>,
-    shape: Shape
+    shape: Shape,
 }
 
 #[derive(Clone)]
@@ -16,7 +16,7 @@ enum Shape {
     O,
     S,
     Z,
-    T
+    T,
 }
 
 impl fmt::Display for Tetromino {
@@ -25,7 +25,11 @@ impl fmt::Display for Tetromino {
 
         for row in &self.blocks {
             for cell in row {
-                let ch = if *cell == 1 { "X".color(color).bold() } else { " ".normal() };
+                let ch = if *cell == 1 {
+                    "X".color(color).bold()
+                } else {
+                    " ".normal()
+                };
                 write!(f, "{}", ch)?;
             }
             writeln!(f)?;
@@ -36,69 +40,49 @@ impl fmt::Display for Tetromino {
 
 fn init_i() -> Tetromino {
     Tetromino {
-        blocks: vec![
-            vec![1, 1, 1, 1],
-        ],
+        blocks: vec![vec![1, 1, 1, 1]],
         shape: Shape::I,
     }
 }
 
 fn init_j() -> Tetromino {
     Tetromino {
-        blocks: vec![
-            vec![1, 0, 0],
-            vec![1, 1, 1],
-        ],
+        blocks: vec![vec![1, 0, 0], vec![1, 1, 1]],
         shape: Shape::J,
     }
 }
 
 fn init_l() -> Tetromino {
     Tetromino {
-        blocks: vec![
-            vec![0, 0, 1],
-            vec![1, 1, 1],
-        ],
+        blocks: vec![vec![0, 0, 1], vec![1, 1, 1]],
         shape: Shape::L,
     }
 }
 
 fn init_o() -> Tetromino {
     Tetromino {
-        blocks: vec![
-            vec![1, 1],
-            vec![1, 1],
-        ],
+        blocks: vec![vec![1, 1], vec![1, 1]],
         shape: Shape::O,
     }
 }
 
 fn init_s() -> Tetromino {
     Tetromino {
-        blocks: vec![
-            vec![0, 1, 1],
-            vec![1, 1, 0],
-        ],
+        blocks: vec![vec![0, 1, 1], vec![1, 1, 0]],
         shape: Shape::S,
     }
 }
 
 fn init_z() -> Tetromino {
     Tetromino {
-        blocks: vec![
-            vec![1, 1, 0],
-            vec![0, 1, 1],
-        ],
+        blocks: vec![vec![1, 1, 0], vec![0, 1, 1]],
         shape: Shape::Z,
     }
 }
 
 fn init_t() -> Tetromino {
     Tetromino {
-        blocks: vec![
-            vec![0, 1, 0],
-            vec![1, 1, 1],
-        ],
+        blocks: vec![vec![0, 1, 0], vec![1, 1, 1]],
         shape: Shape::T,
     }
 }
@@ -116,48 +100,52 @@ fn generate_bag() -> Vec<Tetromino> {
     tetrominoes
 }
 
+fn matrix_transpose<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+    let mut transposed = vec![Vec::with_capacity(matrix.len()); matrix[0].len()];
+    for row in matrix {
+        for (i, val) in row.iter().enumerate() {
+            transposed[i].push(val.clone());
+        }
+    }
+    transposed
+}
+
+fn matrix_reflect<T: Clone>(m: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+    let reflected: Vec<Vec<T>> = m
+        .iter()
+        .map(|row| row.iter().cloned().rev().collect())
+        .collect();
+    reflected
+}
+
 impl Tetromino {
     fn rotate_cw(&mut self) {
-        let og_row = self.blocks.len();
-        let og_col = self.blocks[0].len();
-        
-        let mut new_blocks = vec![vec![0; og_row]; og_col];
-
-        for i in 0..og_row {
-            for j in 0..og_col {
-                new_blocks[j][i] = self.blocks[og_row-i-1][j];
-            }
-        }
-
-        self.blocks = new_blocks;
+        self.blocks = matrix_transpose(&self.blocks);
+        self.blocks = matrix_reflect(&self.blocks)
     }
 
     fn rotate_ccw(&mut self) {
-        let og_row = self.blocks.len();
-        let og_col = self.blocks[0].len();
-        
-        let mut new_blocks = vec![vec![0; og_row]; og_col];
-
-        for i in 0..og_row {
-            for j in 0..og_col {
-                new_blocks[j][i] = self.blocks[og_row-i-1][j];
-            }
-        }
-
-        new_blocks.reverse();
-
-        self.blocks = new_blocks;
+        self.blocks = matrix_reflect(&self.blocks);
+        self.blocks = matrix_transpose(&self.blocks);
     }
 
     fn color(&self) -> colored::Color {
         match self.shape {
             Shape::I => Color::Cyan,
             Shape::J => Color::Blue,
-            Shape::L => colored::Color::TrueColor{ r: 255, g: 140, b: 0 },
+            Shape::L => colored::Color::TrueColor {
+                r: 255,
+                g: 140,
+                b: 0,
+            },
             Shape::O => Color::Yellow,
             Shape::S => Color::Green,
             Shape::Z => Color::Red,
-            Shape::T => colored::Color::TrueColor{ r: 128, g: 0, b: 128 },
+            Shape::T => colored::Color::TrueColor {
+                r: 128,
+                g: 0,
+                b: 128,
+            },
         }
     }
 }
@@ -170,6 +158,11 @@ fn main() {
         rotated.rotate_cw();
         let mut restored: Tetromino = rotated.clone();
         restored.rotate_ccw();
-        println!("Before:\n{}\nAfter:\n{}\nRestored: \n{}", tetromino, rotated, restored);
+        println!(
+            "Before:\n{}\nAfter:\n{}\nRestored: \n{}",
+            tetromino, rotated, restored
+            // "Before:\n{}\nAfter:\n{}\n",
+            // tetromino, rotated
+        );
     }
 }
