@@ -3,18 +3,14 @@ use rand::seq::SliceRandom;
 use std::fmt;
 
 #[derive(Clone)]
-struct Tetromino {
+pub struct Tetromino {
     blocks: Vec<Vec<Option<Block>>>,
-    shape: Shape,
+    // TODO: Remove or utilize this
+    _shape: Shape,
 }
 
 #[derive(Clone)]
-struct Block {
-    color: Color,
-}
-
-#[derive(Clone)]
-enum Shape {
+pub enum Shape {
     I,
     J,
     L,
@@ -22,6 +18,11 @@ enum Shape {
     S,
     Z,
     T,
+}
+
+#[derive(Clone)]
+struct Block {
+    color: Color,
 }
 
 impl fmt::Display for Tetromino {
@@ -50,7 +51,7 @@ fn init_i() -> Tetromino {
             block.clone(),
             block.clone(),
         ]],
-        shape: Shape::I,
+        _shape: Shape::I,
     }
 }
 
@@ -62,7 +63,7 @@ fn init_j() -> Tetromino {
             vec![block.clone(), None, None],
             vec![block.clone(), block.clone(), block.clone()],
         ],
-        shape: Shape::J,
+        _shape: Shape::J,
     }
 }
 
@@ -80,7 +81,7 @@ fn init_l() -> Tetromino {
             vec![None, None, block.clone()],
             vec![block.clone(), block.clone(), block.clone()],
         ],
-        shape: Shape::L,
+        _shape: Shape::L,
     }
 }
 
@@ -94,7 +95,7 @@ fn init_o() -> Tetromino {
             vec![block.clone(), block.clone()],
             vec![block.clone(), block.clone()],
         ],
-        shape: Shape::O,
+        _shape: Shape::O,
     }
 }
 
@@ -108,7 +109,7 @@ fn init_s() -> Tetromino {
             vec![None, block.clone(), block.clone()],
             vec![block.clone(), block.clone(), None],
         ],
-        shape: Shape::S,
+        _shape: Shape::S,
     }
 }
 
@@ -120,7 +121,7 @@ fn init_z() -> Tetromino {
             vec![block.clone(), block.clone(), None],
             vec![None, block.clone(), block.clone()],
         ],
-        shape: Shape::Z,
+        _shape: Shape::Z,
     }
 }
 
@@ -138,21 +139,8 @@ fn init_t() -> Tetromino {
             vec![None, block.clone(), None],
             vec![block.clone(), block.clone(), block.clone()],
         ],
-        shape: Shape::T,
+        _shape: Shape::T,
     }
-}
-
-fn generate_bag() -> Vec<Tetromino> {
-    let mut tetrominoes: Vec<Tetromino> = Vec::new();
-    tetrominoes.push(init_i());
-    tetrominoes.push(init_j());
-    tetrominoes.push(init_l());
-    tetrominoes.push(init_o());
-    tetrominoes.push(init_s());
-    tetrominoes.push(init_z());
-    tetrominoes.push(init_t());
-    tetrominoes.shuffle(&mut rand::thread_rng());
-    tetrominoes
 }
 
 fn matrix_transpose<T: Clone>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
@@ -173,13 +161,38 @@ fn matrix_reflect<T: Clone>(m: &Vec<Vec<T>>) -> Vec<Vec<T>> {
     reflected
 }
 
+fn generate_bag() -> Vec<Tetromino> {
+    let mut tetrominoes: Vec<Tetromino> = Vec::new();
+    tetrominoes.push(Tetromino::new(Shape::I));
+    tetrominoes.push(Tetromino::new(Shape::J));
+    tetrominoes.push(Tetromino::new(Shape::L));
+    tetrominoes.push(Tetromino::new(Shape::O));
+    tetrominoes.push(Tetromino::new(Shape::S));
+    tetrominoes.push(Tetromino::new(Shape::Z));
+    tetrominoes.push(Tetromino::new(Shape::T));
+    tetrominoes.shuffle(&mut rand::thread_rng());
+    tetrominoes
+}
+
 impl Tetromino {
-    fn rotate_cw(&mut self) {
+    pub fn new(shape: Shape) -> Tetromino {
+        match shape {
+            Shape::I => init_i(),
+            Shape::J => init_j(),
+            Shape::L => init_l(),
+            Shape::O => init_o(),
+            Shape::S => init_s(),
+            Shape::Z => init_z(),
+            Shape::T => init_t(),
+        }
+    }
+
+    pub fn rotate_cw(&mut self) {
         self.blocks = matrix_transpose(&self.blocks);
         self.blocks = matrix_reflect(&self.blocks)
     }
 
-    fn rotate_ccw(&mut self) {
+    pub fn rotate_ccw(&mut self) {
         self.blocks = matrix_reflect(&self.blocks);
         self.blocks = matrix_transpose(&self.blocks);
     }
@@ -197,8 +210,7 @@ fn main() {
             "Before:\n{}\nAfter:\n{}\nRestored: \n{}",
             tetromino,
             rotated,
-            restored // "Before:\n{}\nAfter:\n{}\n",
-                     // tetromino, rotated
+            restored
         );
     }
 }
